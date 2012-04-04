@@ -41,7 +41,16 @@ if ($#ARGV == 1) {
 
 my $lookup = Net::Netrc->lookup($wiki_url);
 my $login = $lookup->login;
-my $password = $lookup->password;
+
+
+my $SERVICENAME = "ODS";
+my(@alluserdata);
+open(USERINFO, "security find-generic-password -g -s $SERVICENAME 2>&1 | grep ^password |") || return -3;
+@alluserdata = <USERINFO>;
+close(USERINFO);
+my @pass = split(':', $alluserdata[0]);
+@pass = split('"', $pass[1]);
+my $password = $pass[1];
 
 my $confluence = Confluence->new($wiki_url, $login, $password);
 my $output = $confluence->fetch_page($space, $title);
@@ -69,7 +78,7 @@ my $proc1 = Proc::Background->new("vim", $filename);
 
 while($proc1->alive) {
 	$monitor->scan;
-	sleep(.5);
+	sleep(1);
 }
 
 my $afterMD5 = md5_hex(readfile($filename));
